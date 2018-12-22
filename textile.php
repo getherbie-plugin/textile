@@ -31,7 +31,7 @@ class TextilePlugin
         );
     }
 
-    public function addSortcode(herbie\sysplugin\shortcode\classes\Shortcode $shortcode)
+    public function addSortcode(herbie\plugin\shortcode\classes\Shortcode $shortcode)
     {
         $shortcode->add('textile', [$this, 'textileShortcode']);
     }
