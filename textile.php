@@ -1,23 +1,25 @@
 <?php
 
-use Herbie\DI;
-use Herbie\Hook;
+namespace herbie\plugin\textile;
 
-class TextilePlugin
+use Zend\EventManager\EventInterface;
+use Zend\EventManager\EventManagerInterface;
+
+class TextilePlugin extends \Herbie\Plugin
 {
     /**
      * @return array
      */
-    public function install()
+    public function attach(EventManagerInterface $events, $priority = 1)
     {
-        $config = DI::get('Config');
+        $config = $this->herbie->getConfig();
         if ((bool)$config->get('plugins.config.textile.twig', false)) {
-            Hook::attach('twigInitialized', [$this, 'addTwigFunctionAndFilter']);
+            $events->attach('twigInitialized', [$this, 'addTwigFunctionAndFilter'], $priority);
         }
         if ((bool)$config->get('plugins.config.textile.shortcode', true)) {
-            Hook::attach('shortcodeInitialized', [$this, 'addSortcode']);
+            $events->attach('shortcodeInitialized', [$this, 'onShortcodeInitialized'], $priority);
         }
-        Hook::attach('renderContent', [$this, 'renderContent']);
+        $events->attach('renderContent', [$this, 'onRenderContent'], $priority);
     }
 
     public function addTwigFunctionAndFilter(\Twig_Environment $twig)
@@ -31,17 +33,21 @@ class TextilePlugin
         );
     }
 
-    public function addSortcode(herbie\plugin\shortcode\classes\Shortcode $shortcode)
+    public function onShortcodeInitialized(EventInterface $event)
     {
+        /** @var herbie\plugin\shortcode\classes\Shortcode $shortcode */
+        $shortcode = $event->getTarget();
         $shortcode->add('textile', [$this, 'textileShortcode']);
     }
 
-    public function renderContent($segment, array $attributes)
+    public function onRenderContent(EventInterface $event)
     {
-        if (!in_array($attributes['format'], ['textile'])) {
-            return $segment;
+        if (!in_array($event->getParam('format'), ['textile'])) {
+            return;
         }
-        return $this->parseTextile($segment);
+        $content = $event->getTarget();
+        $parsed = $this->parseTextile($content);
+        $content->set($parsed);
     }
 
     public function parseTextile($value)
@@ -55,5 +61,3 @@ class TextilePlugin
         return $this->parseTextile($content);
     }
 }
-
-(new TextilePlugin())->install();
