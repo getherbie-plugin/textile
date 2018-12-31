@@ -2,19 +2,21 @@
 
 namespace herbie\plugin\textile;
 
+use Herbie\StringValue;
 use Zend\EventManager\EventInterface;
 use Zend\EventManager\EventManagerInterface;
 
 class TextilePlugin extends \Herbie\Plugin
 {
     /**
-     * @return array
+     * @param EventManagerInterface $events
+     * @param int $priority
      */
     public function attach(EventManagerInterface $events, $priority = 1)
     {
         $config = $this->herbie->getConfig();
         if ((bool)$config->get('plugins.config.textile.twig', false)) {
-            $events->attach('twigInitialized', [$this, 'addTwigFunctionAndFilter'], $priority);
+            $events->attach('twigInitialized', [$this, 'onTwigInitialized'], $priority);
         }
         if ((bool)$config->get('plugins.config.textile.shortcode', true)) {
             $events->attach('shortcodeInitialized', [$this, 'onShortcodeInitialized'], $priority);
@@ -22,8 +24,13 @@ class TextilePlugin extends \Herbie\Plugin
         $events->attach('renderContent', [$this, 'onRenderContent'], $priority);
     }
 
-    public function addTwigFunctionAndFilter(\Twig_Environment $twig)
+    /**
+     * @param EventInterface $event
+     */
+    public function onTwigInitialized(EventInterface $event)
     {
+        /** @var Twig_Environment $twig */
+        $twig = $event->getTarget();
         $options = ['is_safe' => ['html']];
         $twig->addFunction(
             new \Twig_SimpleFunction('textile', [$this, 'parseTextile'], $options)
@@ -33,6 +40,9 @@ class TextilePlugin extends \Herbie\Plugin
         );
     }
 
+    /**
+     * @param EventInterface $event
+     */
     public function onShortcodeInitialized(EventInterface $event)
     {
         /** @var herbie\plugin\shortcode\classes\Shortcode $shortcode */
@@ -40,23 +50,36 @@ class TextilePlugin extends \Herbie\Plugin
         $shortcode->add('textile', [$this, 'textileShortcode']);
     }
 
+    /**
+     * @param EventInterface $event
+     */
     public function onRenderContent(EventInterface $event)
     {
         if (!in_array($event->getParam('format'), ['textile'])) {
             return;
         }
-        $content = $event->getTarget();
-        $parsed = $this->parseTextile($content);
-        $content->set($parsed);
+        /** @var StringValue $stringValue */
+        $stringValue = $event->getTarget();
+        $parsed = $this->parseTextile($stringValue->get());
+        $stringValue->set($parsed);
     }
 
-    public function parseTextile($value)
+    /**
+     * @param $value
+     * @return string
+     */
+    public function parseTextile(string $value): string
     {
         $parser = new \Netcarver\Textile\Parser();
         return $parser->parse($value);
     }
 
-    public function textileShortcode($options, $content)
+    /**
+     * @param mixed $options
+     * @param string $content
+     * @return string
+     */
+    public function textileShortcode($options, string $content): string
     {
         return $this->parseTextile($content);
     }
