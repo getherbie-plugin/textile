@@ -16,12 +16,12 @@ class TextilePlugin extends \Herbie\Plugin
     {
         $config = $this->herbie->getConfig();
         if ((bool)$config->get('plugins.config.textile.twig', false)) {
-            $events->attach('twigInitialized', [$this, 'onTwigInitialized'], $priority);
+            $events->attach('onTwigInitialized', [$this, 'onTwigInitialized'], $priority);
         }
         if ((bool)$config->get('plugins.config.textile.shortcode', true)) {
-            $events->attach('shortcodeInitialized', [$this, 'onShortcodeInitialized'], $priority);
+            $events->attach('onShortcodeInitialized', [$this, 'onShortcodeInitialized'], $priority);
         }
-        $events->attach('renderContent', [$this, 'onRenderContent'], $priority);
+        $events->attach('onRenderContent', [$this, 'onRenderContent'], $priority);
     }
 
     /**
