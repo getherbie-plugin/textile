@@ -12,7 +12,7 @@ class TextilePlugin extends \Herbie\Plugin
      * @param EventManagerInterface $events
      * @param int $priority
      */
-    public function attach(EventManagerInterface $events, $priority = 1)
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
         $config = $this->herbie->getConfig();
         if ((bool)$config->get('plugins.config.textile.twig', false)) {
