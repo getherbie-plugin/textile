@@ -14,7 +14,7 @@ class TextilePlugin extends \Herbie\Plugin
      */
     public function attach(EventManagerInterface $events, $priority = 1): void
     {
-        $config = $this->herbie->getConfig();
+        $config = $this->getConfig();
         if ((bool)$config->get('plugins.config.textile.twig', false)) {
             $events->attach('onTwigInitialized', [$this, 'onTwigInitialized'], $priority);
         }
