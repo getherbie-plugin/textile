@@ -3,10 +3,10 @@
 namespace herbie\plugin\textile;
 
 use Herbie\Config;
+use Herbie\Event;
+use Herbie\EventManager;
 use Herbie\PluginInterface;
 use Herbie\StringValue;
-use Zend\EventManager\EventInterface;
-use Zend\EventManager\EventManagerInterface;
 
 class TextilePlugin implements PluginInterface
 {
@@ -18,10 +18,10 @@ class TextilePlugin implements PluginInterface
     }
 
     /**
-     * @param EventManagerInterface $events
+     * @param EventManager $events
      * @param int $priority
      */
-    public function attach(EventManagerInterface $events, $priority = 1): void
+    public function attach(EventManager $events, int $priority = 1): void
     {
         if ((bool)$this->config->get('plugins.config.textile.twig', false)) {
             $events->attach('onTwigInitialized', [$this, 'onTwigInitialized'], $priority);
@@ -33,9 +33,9 @@ class TextilePlugin implements PluginInterface
     }
 
     /**
-     * @param EventInterface $event
+     * @param Event $event
      */
-    public function onTwigInitialized(EventInterface $event)
+    public function onTwigInitialized(Event $event)
     {
         /** @var Twig_Environment $twig */
         $twig = $event->getTarget();
@@ -49,9 +49,9 @@ class TextilePlugin implements PluginInterface
     }
 
     /**
-     * @param EventInterface $event
+     * @param Event $event
      */
-    public function onShortcodeInitialized(EventInterface $event)
+    public function onShortcodeInitialized(Event $event)
     {
         /** @var herbie\plugin\shortcode\classes\Shortcode $shortcode */
         $shortcode = $event->getTarget();
@@ -59,11 +59,10 @@ class TextilePlugin implements PluginInterface
     }
 
     /**
-     * @param EventInterface $event
+     * @param Event $event
      */
-    public function onRenderContent(EventInterface $event)
+    public function onRenderContent(Event $event)
     {
-        #echo __METHOD__ . "<br>";
         if (!in_array($event->getParam('format'), ['textile'])) {
             return;
         }
